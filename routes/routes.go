@@ -13,6 +13,7 @@ func Routes(router *gin.Engine, carController controller.CarController) {
 		carPublic.POST("/insert", carController.InsertCar)
 		carPublic.GET("", carController.GetAllCar)
 		carPublic.GET("/:id", carController.GetCarById)
+		carPublic.POST("/image", carController.InsertImage)
 	}
 
 }
