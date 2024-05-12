@@ -15,6 +15,7 @@ type CarService interface {
 	// functional
 	CreateCar(ctx context.Context, carDTO dto.CreateCarDTO) (entity.Car, error)
 	GetAllCar(ctx context.Context) ([]entity.Car, error)
+	GetCarById(ctx context.Context, id uint64) (entity.Car, error)
 }
 
 func NewCarService(cr repository.CarRepository) CarService {
@@ -34,4 +35,8 @@ func (cs *carService) CreateCar(ctx context.Context, carDTO dto.CreateCarDTO) (e
 
 func (cs *carService) GetAllCar(ctx context.Context) ([]entity.Car, error) {
 	return cs.carRepository.GetAllCar(ctx)
+}
+
+func (cs *carService) GetCarById(ctx context.Context, id uint64) (entity.Car, error) {
+	return cs.carRepository.GetCarById(ctx, id)
 }
