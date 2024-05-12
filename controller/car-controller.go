@@ -83,18 +83,18 @@ func (cc *carController) GetCarById(ctx *gin.Context) {
 }
 
 func (cc *carController) InsertImage(ctx *gin.Context) {
-	name := ctx.PostForm("name")
-	email := ctx.PostForm("email")
 
-	file, err := ctx.FormFile("file")
+	var newImage dto.CarImageDTO
+	err := ctx.ShouldBind(&newImage)
 	if err != nil {
 		ctx.String(http.StatusBadRequest, "get form error %s", err.Error())
 	}
 
-	filename := filepath.Base(file.Filename)
-	if err := ctx.SaveUploadedFile(file, filename); err != nil {
+	filename := filepath.Base(newImage.File.Filename)
+	if err := ctx.SaveUploadedFile(newImage.File, filename); err != nil {
 		ctx.String(http.StatusBadRequest, "upload file error: %s", err.Error())
 	}
 
-	ctx.String(http.StatusOK, "File %s uploaded successfully with fields name=%s and email=%s.", file.Filename, name, email)
+	res := utils.BuildResponse("success to upload image", http.StatusOK, newImage)
+	ctx.JSON(http.StatusOK, res)
 }
