@@ -16,6 +16,8 @@ type CarRepository interface {
 	InsertCar(ctx context.Context, car entity.Car) (entity.Car, error)
 	GetAllCar(ctx context.Context) ([]entity.Car, error)
 	GetCarById(ctx context.Context, id uint64) (entity.Car, error)
+	GetCarByName(ctx context.Context, name string) (entity.Car, error)
+	CarImage(ctx context.Context, newImage entity.CarImage) (entity.CarImage, error)
 }
 
 func NewCarRepository(db *gorm.DB) CarRepository {
@@ -29,6 +31,14 @@ func (db *carConnection) InsertCar(ctx context.Context, car entity.Car) (entity.
 		return entity.Car{}, err
 	}
 
+	return car, nil
+}
+
+func (db *carConnection) GetCarByName(ctx context.Context, name string) (entity.Car, error) {
+	var car entity.Car
+	if err := db.connection.Where("name = ?", name).Take(&car).Error; err != nil {
+		return entity.Car{}, err
+	}
 	return car, nil
 }
 
@@ -54,4 +64,12 @@ func (db *carConnection) GetCarById(ctx context.Context, id uint64) (entity.Car,
 	}
 
 	return Car, nil
+}
+
+func (db *carConnection) CarImage(ctx context.Context, newImage entity.CarImage) (entity.CarImage, error) {
+	if err := db.connection.Create(&newImage).Error; err != nil {
+		return entity.CarImage{}, err
+	}
+
+	return newImage, nil
 }

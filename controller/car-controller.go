@@ -1,18 +1,20 @@
 package controller
 
 import (
+	"fmt"
 	"mods/dto"
 	"mods/service"
 	"mods/utils"
 	"net/http"
-	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 type carController struct {
 	carService service.CarService
+	jwtService service.JWTService
 }
 
 type CarController interface {
@@ -21,12 +23,42 @@ type CarController interface {
 	GetAllCar(ctx *gin.Context)
 	GetCarById(ctx *gin.Context)
 	InsertImage(ctx *gin.Context)
+	CarToken(ctx *gin.Context)
 }
 
-func NewCarController(cs service.CarService) CarController {
+func NewCarController(cs service.CarService, jwt service.JWTService) CarController {
 	return &carController{
 		carService: cs,
+		jwtService: jwt,
 	}
+}
+
+func (cc *carController) RetrieveID(ctx *gin.Context) (uint64, error) {
+	token := ctx.GetHeader("Authorization")
+	token = strings.Replace(token, "Bearer ", "", -1)
+
+	return cc.jwtService.GetUserIDByToken(token)
+}
+
+func (cc *carController) CarToken(ctx *gin.Context) {
+	var carLogin dto.LoginDTO
+	if tx := ctx.ShouldBind(&carLogin); tx != nil {
+		res := utils.BuildErrorResponse("Failed to process request", http.StatusBadRequest)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	car, err := cc.carService.GetCarByName(ctx, carLogin.Name)
+	if err != nil {
+		res := utils.BuildErrorResponse("Failed to login, car no registered", http.StatusBadRequest)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	token := cc.jwtService.GenerateToken(car.ID, car.Name)
+	fmt.Print(token)
+	res := utils.BuildResponse("Successful login", http.StatusOK, token)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (cc *carController) InsertCar(ctx *gin.Context) {
@@ -90,11 +122,20 @@ func (cc *carController) InsertImage(ctx *gin.Context) {
 		ctx.String(http.StatusBadRequest, "get form error %s", err.Error())
 	}
 
-	filename := filepath.Base(newImage.File.Filename)
-	if err := ctx.SaveUploadedFile(newImage.File, filename); err != nil {
-		ctx.String(http.StatusBadRequest, "upload file error: %s", err.Error())
+	carId, err := cc.RetrieveID(ctx)
+	if err != nil {
+		response := utils.BuildErrorResponse("invalid token", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
 	}
 
-	res := utils.BuildResponse("success to upload image", http.StatusOK, newImage)
+	result, err := cc.carService.CarImage(ctx, newImage, carId)
+	if err != nil {
+		res := utils.BuildErrorResponse("failed to insert", http.StatusBadRequest)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponse("success to upload image", http.StatusOK, result)
 	ctx.JSON(http.StatusOK, res)
 }

@@ -2,11 +2,12 @@ package routes
 
 import (
 	"mods/controller"
+	"mods/service"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Routes(router *gin.Engine, carController controller.CarController) {
+func Routes(router *gin.Engine, carController controller.CarController, jwtService service.JWTService) {
 	carPublic := router.Group("/car")
 	{
 		// public can access
@@ -14,6 +15,8 @@ func Routes(router *gin.Engine, carController controller.CarController) {
 		carPublic.GET("", carController.GetAllCar)
 		carPublic.GET("/:id", carController.GetCarById)
 		carPublic.POST("/image", carController.InsertImage)
+		carPublic.POST("/login", carController.CarToken)
+		carPublic.StaticFile("/img/:path", "./image/bangkit.jpg")
 	}
 
 }

@@ -10,3 +10,7 @@ type CreateCarDTO struct {
 type CarImageDTO struct {
 	File *multipart.FileHeader `form:"file"`
 }
+
+type LoginDTO struct {
+	Name string `json:"name" binding:"required"`
+}

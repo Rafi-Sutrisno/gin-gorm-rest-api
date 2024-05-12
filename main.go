@@ -22,16 +22,17 @@ func main() {
 
 	db := config.SetupDatabaseConnection()
 
+	jwtService := service.NewJWTService()
 	carRepository := repository.NewCarRepository(db)
 	carService := service.NewCarService(carRepository)
-	CarController := controller.NewCarController(carService)
+	CarController := controller.NewCarController(carService, jwtService)
 
 	defer config.CloseDatabaseConnection(db)
 
 	server := gin.Default()
 	server.Use(middleware.CORSMiddleware())
 
-	routes.Routes(server, CarController)
+	routes.Routes(server, CarController, jwtService)
 
 	port := os.Getenv("PORT")
 	if port == "" {
