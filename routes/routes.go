@@ -12,6 +12,7 @@ func Routes(router *gin.Engine, carController controller.CarController) {
 		// public can access
 		carPublic.POST("/insert", carController.InsertCar)
 		carPublic.GET("", carController.GetAllCar)
+		carPublic.GET("/:id", carController.GetCarById)
 	}
 
 }
