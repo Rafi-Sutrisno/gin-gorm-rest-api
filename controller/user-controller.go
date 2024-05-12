@@ -26,6 +26,7 @@ func NewCarController(cs service.CarService) CarController {
 }
 
 func (cc *carController) InsertCar(ctx *gin.Context) {
+
 	var car dto.CreateCarDTO
 	if tx := ctx.ShouldBind(&car); tx != nil {
 		res := utils.BuildErrorResponse("Failed to process request", http.StatusBadRequest)
