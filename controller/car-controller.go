@@ -5,7 +5,9 @@ import (
 	"mods/service"
 	"mods/utils"
 	"net/http"
+	"path/filepath"
 	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,6 +20,7 @@ type CarController interface {
 	InsertCar(ctx *gin.Context)
 	GetAllCar(ctx *gin.Context)
 	GetCarById(ctx *gin.Context)
+	InsertImage(ctx *gin.Context)
 }
 
 func NewCarController(cs service.CarService) CarController {
@@ -77,4 +80,21 @@ func (cc *carController) GetCarById(ctx *gin.Context) {
 	res := utils.BuildResponse("success to get car info", http.StatusOK, CarByid)
 	ctx.JSON(http.StatusOK, res)
 
+}
+
+func (cc *carController) InsertImage(ctx *gin.Context) {
+	name := ctx.PostForm("name")
+	email := ctx.PostForm("email")
+
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.String(http.StatusBadRequest, "get form error %s", err.Error())
+	}
+
+	filename := filepath.Base(file.Filename)
+	if err := ctx.SaveUploadedFile(file, filename); err != nil {
+		ctx.String(http.StatusBadRequest, "upload file error: %s", err.Error())
+	}
+
+	ctx.String(http.StatusOK, "File %s uploaded successfully with fields name=%s and email=%s.", file.Filename, name, email)
 }
