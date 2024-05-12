@@ -5,7 +5,7 @@ import (
 	"mods/service"
 	"mods/utils"
 	"net/http"
-
+	"strconv"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,6 +17,7 @@ type CarController interface {
 	// regist login
 	InsertCar(ctx *gin.Context)
 	GetAllCar(ctx *gin.Context)
+	GetCarById(ctx *gin.Context)
 }
 
 func NewCarController(cs service.CarService) CarController {
@@ -54,6 +55,26 @@ func (cc *carController) GetAllCar(ctx *gin.Context) {
 	}
 
 	res := utils.BuildResponse("success ini mobil mu", http.StatusOK, carList)
+	ctx.JSON(http.StatusOK, res)
+
+}
+
+func (cc *carController) GetCarById(ctx *gin.Context) {
+	Carid, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		response := utils.BuildErrorResponse("gagal memproses request", http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+
+	CarByid, err := cc.carService.GetCarById(ctx, Carid)
+	if err != nil {
+		res := utils.BuildErrorResponse("failed to get car id info", http.StatusBadRequest)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponse("success to get car info", http.StatusOK, CarByid)
 	ctx.JSON(http.StatusOK, res)
 
 }

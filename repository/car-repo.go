@@ -15,6 +15,7 @@ type CarRepository interface {
 	// functional
 	InsertCar(ctx context.Context, car entity.Car) (entity.Car, error)
 	GetAllCar(ctx context.Context) ([]entity.Car, error)
+	GetCarById(ctx context.Context, id uint64) (entity.Car, error)
 }
 
 func NewCarRepository(db *gorm.DB) CarRepository {
@@ -41,4 +42,16 @@ func (db *carConnection) GetAllCar(ctx context.Context) ([]entity.Car, error) {
 	}
 
 	return listCar, nil
+}
+
+func (db *carConnection) GetCarById(ctx context.Context, id uint64) (entity.Car, error) {
+	var Car entity.Car
+
+	tx := db.connection.Find(&Car, id)
+
+	if tx.Error != nil {
+		return entity.Car{}, tx.Error
+	}
+
+	return Car, nil
 }
