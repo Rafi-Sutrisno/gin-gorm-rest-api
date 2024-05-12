@@ -16,7 +16,8 @@ func Routes(router *gin.Engine, carController controller.CarController, jwtServi
 		carPublic.GET("/:id", carController.GetCarById)
 		carPublic.POST("/image", carController.InsertImage)
 		carPublic.POST("/login", carController.CarToken)
-		carPublic.StaticFile("/img/:path", "./image/bangkit.jpg")
+		carPublic.GET("/img/:path", carController.GetImage)
+		carPublic.POST("/predict/:path", carController.Predict)
 	}
 
 }

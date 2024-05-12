@@ -14,3 +14,7 @@ type CarImageDTO struct {
 type LoginDTO struct {
 	Name string `json:"name" binding:"required"`
 }
+
+type PredictionDTO struct {
+	Prediction int `json:"prediction"`
+}

@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"mods/dto"
 	"mods/service"
 	"mods/utils"
 	"net/http"
+	"os/exec"
 	"strconv"
 	"strings"
 
@@ -24,6 +26,8 @@ type CarController interface {
 	GetCarById(ctx *gin.Context)
 	InsertImage(ctx *gin.Context)
 	CarToken(ctx *gin.Context)
+	GetImage(ctx *gin.Context)
+	Predict(ctx *gin.Context)
 }
 
 func NewCarController(cs service.CarService, jwt service.JWTService) CarController {
@@ -90,7 +94,9 @@ func (cc *carController) GetAllCar(ctx *gin.Context) {
 	}
 
 	res := utils.BuildResponse("success ini mobil mu", http.StatusOK, carList)
-	ctx.JSON(http.StatusOK, res)
+	_ = res
+	// ctx.JSON(http.StatusOK, res)
+	ctx.File("./image/bangkit.jpg")
 
 }
 
@@ -138,4 +144,41 @@ func (cc *carController) InsertImage(ctx *gin.Context) {
 
 	res := utils.BuildResponse("success to upload image", http.StatusOK, result)
 	ctx.JSON(http.StatusOK, res)
+}
+
+func (cc *carController) GetImage(ctx *gin.Context) {
+
+	path := ctx.Param("path")
+	path = "./image/" + path
+
+	// fmt.Print(path)
+	ctx.File(path)
+}
+
+func (cc *carController) Predict(ctx *gin.Context) {
+	path := ctx.Param("path")
+	path = "./image/" + path
+
+	cmd := exec.Command("python", "./main.py", path)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		res := utils.BuildErrorResponse("failed to predict", http.StatusBadRequest)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	cleanedData := output[:len(output)-2]
+	cleanedData[1] = 34
+	cleanedData[12] = 34
+
+	// jsonString := string(cleanedData)
+	var result map[string]interface{}
+	if err := json.Unmarshal(cleanedData, &result); err != nil {
+		res := utils.BuildErrorResponse(err.Error(), http.StatusBadRequest)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponse("success to predict", http.StatusOK, result)
+	ctx.JSON(http.StatusAccepted, res)
 }
